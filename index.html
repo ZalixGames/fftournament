@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto App Concept</title>
+    <style>
+        /* Basic Reset & Body Styling */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; padding-bottom: 70px; /* Adjusted later if needed */ }
+
+        /* --- Authentication Container --- */
+        #auth-container { max-width: 400px; margin: 50px auto; padding: 30px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+        #auth-container h2 { margin-bottom: 25px; color: #1a73e8; border-bottom: none; }
+        #auth-container .form-group { margin-bottom: 15px; text-align: left; }
+        #auth-container label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        #auth-container input[type="email"], #auth-container input[type="password"], #auth-container input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
+        #auth-container button[type="submit"] { width: 100%; padding: 12px; background-color: #1a73e8; color: white; border: none; border-radius: 5px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background-color 0.3s ease; margin-top: 10px; }
+        #auth-container button[type="submit"]:hover { background-color: #1765cc; }
+        #auth-container .switch-auth { margin-top: 20px; font-size: 0.9em; }
+        #auth-container .switch-auth button { background: none; border: none; color: #1a73e8; text-decoration: underline; cursor: pointer; font-size: 1em; }
+        #auth-error { color: #dc3545; margin-top: 15px; font-size: 0.9em; min-height: 1.2em; }
+        #signup-form { display: none; }
+
+        /* --- Main App Container (Initially Hidden) --- */
+        #main-app { display: none; }
+        body.logged-in { padding-bottom: 70px; }
+
+        /* Main Content Area */
+        #app-content { max-width: 100%; margin: 0 auto; }
+        .page { display: none; padding: 15px; animation: fadeIn 0.5s ease-in-out; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        h2 { color: #1a73e8; margin-bottom: 20px; padding-bottom: 5px; border-bottom: 2px solid #1a73e8; text-align: center; font-size: 1.4em; }
+
+        /* Bottom Navigation Bar */
+        #bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background-color: #ffffff; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e0e0e0; z-index: 1000; }
+        #bottom-nav button { background: none; border: none; color: #5f6368; padding: 10px 5px; cursor: pointer; font-size: 10px; font-family: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; flex-grow: 1; transition: color 0.3s ease; height: 100%; }
+        #bottom-nav button::before { font-size: 20px; margin-bottom: 4px; font-weight: bold; }
+        #btn-trading::before { content: "📈"; } #btn-news::before { content: "📰"; } #btn-earn::before { content: "💰"; } /* Changed Tasks icon */
+        #bottom-nav button:hover { color: #1a73e8; }
+        #bottom-nav button.active { color: #1a73e8; border-top: 2px solid #1a73e8; margin-top: -2px; }
+
+        /* --- Trading Page --- */
+        #page-trading .trading-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; background-color: #ffffff; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; /* Needed for profile popup */ }
+        #page-trading .header-info { display: flex; align-items: center; }
+        /* Updated Header Logo Size */
+        #page-trading .header-logo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid #1a73e8; }
+        #page-trading .header-title { font-size: 1.2em; font-weight: bold; color: #333; }
+
+        /* Profile Button & Popup */
+        #profile-section { position: relative; }
+        #profile-button { background-color: #1a73e8; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em; transition: background-color 0.3s; display: flex; align-items: center; gap: 5px; }
+        #profile-button::before { content: '👤'; font-size: 1.1em; }
+        #profile-button:hover { background-color: #1765cc; }
+        #profile-popup { display: none; position: absolute; top: 100%; right: 0; background-color: white; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px; z-index: 1010; min-width: 200px; margin-top: 5px; }
+        #profile-popup.show { display: block; }
+        #profile-popup p { margin-bottom: 8px; font-size: 0.9em; color: #555; word-break: break-all; }
+        #profile-popup p strong { color: #333; }
+        #profile-popup #profile-user-name { font-weight: bold; color: #1a73e8; }
+        #profile-popup #profile-logout-button { background-color: #ea4335; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em; transition: background-color 0.3s; width: 100%; margin-top: 10px; }
+        #profile-popup #profile-logout-button:hover { background-color: #d93025; }
+
+        #page-trading .coin-list { list-style: none; padding: 0; }
+        #page-trading .coin-item { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; display: flex; flex-wrap: wrap; /* Allow wrapping */ align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: box-shadow 0.3s ease; }
+        #page-trading .coin-item:hover { box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        #page-trading .coin-info { display: flex; align-items: center; flex-grow: 1; margin-right: 10px; margin-bottom: 10px; /* Space below on wrap */ }
+        /* Coin Logo Size (Standard) */
+        #page-trading .coin-logo { width: 40px; height: 40px; margin-right: 15px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; background-color: #f0f2f5; /* Added background for loading/error */ }
+        #page-trading .coin-details { display: flex; flex-direction: column; }
+        #page-trading .coin-name { font-weight: bold; font-size: 1.1em; color: #202124; }
+        #page-trading .coin-symbol { font-size: 0.9em; color: #5f6368; }
+        #page-trading .price-section { display: flex; flex-direction: column; align-items: flex-end; margin-right: 15px; margin-bottom: 10px; /* Space below on wrap */ }
+        #page-trading .coin-price-usd { font-size: 1.1em; font-weight: bold; color: #1e8e3e; }
+        #page-trading .coin-price-pkr { font-size: 0.9em; color: #5f6368; }
+        #page-trading .coin-actions { display: flex; align-items: center; }
+        #page-trading .coin-actions button { padding: 8px 12px; margin-left: 5px; border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 0.9em; font-weight: bold; transition: opacity 0.3s ease; }
+        #page-trading .coin-actions button:hover { opacity: 0.85; }
+        #page-trading .buy-button { background-color: #34a853; }
+        #page-trading .sell-button { background-color: #ea4335; }
+        #page-trading .coin-actions button:disabled { background-color: #9e9e9e; cursor: not-allowed; }
+
+        /* --- News Page --- */
+        #page-news .news-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        #page-news .news-item { background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        #page-news .news-image { width: 100%; height: 150px; object-fit: cover; background-color: #eee; }
+        #page-news .news-content { padding: 15px; flex-grow: 1; }
+        #page-news .news-title { font-size: 1.2em; font-weight: bold; color: #202124; margin-bottom: 10px; }
+        #page-news .news-text { font-size: 0.95em; color: #5f6368; line-height: 1.5; margin-bottom: 15px; }
+        #page-news .join-button { display: block; background-color: #1a73e8; color: white; text-align: center; padding: 10px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; transition: background-color 0.3s ease; margin: 0 15px 15px 15px; }
+        #page-news .join-button:hover { background-color: #1765cc; }
+        #page-news .join-button.disabled { background-color: #adb5bd; cursor: not-allowed; }
+
+        /* --- Earn Page (Formerly Tasks) --- */
+        #page-earn { background-color: #e8f0fe; border-radius: 8px; padding: 20px; } /* Renamed ID */
+        #points-section { background-color: #ffffff; border: 1px solid #1a73e8; padding: 15px; margin-bottom: 25px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        #points-section p { margin-bottom: 5px; font-size: 1.1em; color: #5f6368; }
+        #points-section span#points-display { font-weight: bold; font-size: 1.8em; color: #1a73e8; }
+        #withdraw-button { background-color: #ffc107; color: #333; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.3s; margin-top: 10px; }
+        #withdraw-button:hover { background-color: #e0a800; }
+        #withdraw-button:disabled { background-color: #adb5bd; cursor: not-allowed; }
+        .task-list { list-style: none; padding: 0; }
+        .task-item { background-color: #ffffff; border: 1px solid #d1e3ff; padding: 15px; margin-bottom: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.2s ease; flex-wrap: wrap; }
+        .task-item:hover { transform: translateY(-2px); }
+        .task-item span.task-desc { flex-grow: 1; margin-right: 15px; color: #333; font-size: 1em; margin-bottom: 10px; width: 100%; /* Adjust as needed */ }
+        .task-item .task-actions { display: flex; align-items: center; width: 100%; justify-content: flex-end; flex-wrap: wrap; gap: 10px; /* Add gap for spacing */ }
+        .task-item .task-points { font-size: 0.9em; color: #1e8e3e; font-weight: bold; white-space: nowrap; }
+        .task-item button.visit-button, .task-item a.visit-button { background-color: #007bff; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-size: 0.9em; transition: background-color 0.3s; white-space: nowrap; border: none; cursor: pointer; }
+        .task-item button.visit-button:hover, .task-item a.visit-button:hover { background-color: #0056b3; }
+        .task-item button.visit-button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .task-item .timer-claim-section { display: flex; align-items: center; gap: 10px; /* Add gap */ }
+        .task-item span.timer { font-style: italic; color: #6c757d; font-size: 0.9em; white-space: nowrap; }
+        .task-item button.claim-button { background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-family: inherit; font-weight: bold; transition: background-color 0.3s, opacity 0.3s; white-space: nowrap; font-size: 0.9em; }
+        .task-item button.claim-button:hover { background-color: #218838; }
+        .task-item button.claim-button:disabled { background-color: #adb5bd; cursor: not-allowed; opacity: 0.7; }
+        .task-item .completed-message { color: green; font-weight: bold; font-size: 0.9em; white-space: nowrap; } /* Style for completed text */
+
+        /* --- Modal Styles --- */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); animation: fadeInModal 0.3s ease-in-out; }
+        .modal.show { display: flex; justify-content: center; align-items: center; }
+        .modal-content { background-color: #fefefe; margin: auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); position: relative; animation: slideInModal 0.4s ease-out; max-height: 85vh; /* Limit height and allow scroll */ overflow-y: auto; /* Enable vertical scroll */ }
+        .close-button { color: #aaa; position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; line-height: 1; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        @keyframes fadeInModal { from { background-color: rgba(0,0,0,0); } to { background-color: rgba(0,0,0,0.5); } }
+        @keyframes slideInModal { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-form h3 { text-align: center; margin-bottom: 20px; color: #1a73e8; }
+        .modal-form h4 { margin-top: 20px; margin-bottom: 10px; color: #555; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .modal-form .form-group { margin-bottom: 15px; }
+        .modal-form label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; font-size: 0.9em; }
+        .modal-form input[type="text"], .modal-form input[type="number"], .modal-form input[type="file"], .modal-form select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
+        .modal-form input[type="file"] { padding: 5px; }
+        .modal-form button[type="submit"] { background-color: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 1.1em; font-weight: bold; margin-top: 15px; transition: background-color 0.3s ease; }
+        .modal-form button[type="submit"]:hover { background-color: #45a049; }
+        .modal-form .info-text { font-size: 0.9em; color: #555; margin-bottom: 15px; }
+        .modal-form .error-message { color: #dc3545; font-size: 0.9em; margin-top: 10px; min-height: 1.2em; text-align: center; }
+
+        .dealer-address-section { background-color: #e8f0fe; padding: 10px 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #1a73e8; }
+        .dealer-address-section p { margin: 0; font-size: 0.95em; color: #333; line-height: 1.4; word-wrap: break-word; }
+        .dealer-address-section strong { color: #1a73e8; }
+        .dealer-address-section .address { font-weight: bold; color: #d93025; margin-top: 5px; display: block; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Authentication Container -->
+    <div id="auth-container">
+        <!-- Login/Signup Forms -->
+        <form id="login-form"><h2>Login</h2><div id="login-error" class="auth-error"></div><div class="form-group"><label for="login-email">Email:</label><input type="email" id="login-email" required></div><div class="form-group"><label for="login-password">Password:</label><input type="password" id="login-password" required></div><button type="submit">Login</button><div class="switch-auth">No account? <button type="button" onclick="showSignupForm()">Sign Up</button></div></form>
+        <form id="signup-form"><h2>Sign Up</h2><div id="signup-error" class="auth-error"></div><div class="form-group"><label for="signup-name">Full Name:</label><input type="text" id="signup-name" required></div><div class="form-group"><label for="signup-email">Email:</label><input type="email" id="signup-email" required></div><div class="form-group"><label for="signup-password">Password:</label><input type="password" id="signup-password" required></div><div class="form-group"><label for="signup-confirm-password">Confirm Password:</label><input type="password" id="signup-confirm-password" required></div><button type="submit">Sign Up</button><div class="switch-auth">Have account? <button type="button" onclick="showLoginForm()">Login</button></div></form>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="main-app">
+        <main id="app-content">
+            <!-- Page 1: Trading -->
+            <div id="page-trading" class="page">
+                <div class="trading-header">
+                    <div class="header-info">
+                        <!-- Updated Header Logo Source and Alt Text -->
+                        <img src="https://i.imgur.com/2Ou7g1K.jpeg" alt="Dealer Logo" class="header-logo">
+                        <span class="header-title">Nadeem Raza Trust Dealer</span>
+                     </div>
+                    <!-- Profile Section -->
+                    <div id="profile-section">
+                         <button id="profile-button">Profile</button>
+                         <div id="profile-popup">
+                             <p><strong>Name:</strong> <span id="profile-user-name">Loading...</span></p>
+                             <p><strong>Email:</strong> <span id="profile-user-email">Loading...</span></p>
+                             <button id="profile-logout-button">Logout</button>
+                         </div>
+                    </div>
+                     <!-- End Profile Section -->
+                </div>
+                <h2>Trading Market</h2>
+                <ul class="coin-list">
+                     <li class="coin-item" data-coin-id="sidra">
+                        <div class="coin-info">
+                            <!-- Updated Sidra Chain Logo Source -->
+                            <img src="https://i.imgur.com/3HnywZh.jpeg" alt="Sidra Chain Logo" class="coin-logo">
+                            <div class="coin-details"> <span class="coin-name">Sidra Chain</span> <span class="coin-symbol">SIDRA</span> </div>
+                        </div>
+                        <div class="price-section">
+                            <span class="coin-price-usd" id="price-sidra-usd">$...</span>
+                            <span class="coin-price-pkr" id="price-sidra-pkr">PKR ...</span>
+                        </div>
+                        <div class="coin-actions"> <button class="buy-button" onclick="openBuyModal('Sidra Chain')">Buy</button> <button class="sell-button" onclick="openSellModal('Sidra Chain')">Sell</button> </div>
+                    </li>
+                    <li class="coin-item" data-coin-id="usdt_trc20">
+                        <div class="coin-info">
+                            <!-- Updated USDT Logo Source -->
+                            <img src="https://i.imgur.com/0g4DwhR.jpeg" alt="USDT Logo" class="coin-logo">
+                            <div class="coin-details"> <span class="coin-name">USDT (TRC20)</span> <span class="coin-symbol">USDT</span> </div>
+                        </div>
+                         <div class="price-section">
+                             <span class="coin-price-usd" id="price-usdt_trc20-usd">$...</span>
+                             <span class="coin-price-pkr" id="price-usdt_trc20-pkr">PKR ...</span>
+                         </div>
+                        <div class="coin-actions"> <button class="buy-button" onclick="openBuyModal('USDT (TRC20)')">Buy</button> <button class="sell-button" onclick="openSellModal('USDT (TRC20)')">Sell</button> </div>
+                    </li>
+                </ul>
+                 <p style="text-align: center; font-size: 0.8em; color: #5f6368; margin-top: 20px;">Prices updated in real-time.</p>
+            </div>
+
+            <!-- Page 2: News -->
+            <div id="page-news" class="page">
+                <h2>Crypto News & Projects</h2>
+                <div id="news-container" class="news-container"> <p>Loading news...</p> </div>
+            </div>
+
+            <!-- Page 3: Earn (Formerly Tasks) -->
+            <div id="page-earn" class="page"> <!-- Renamed ID -->
+                <h2>Earn Points</h2> <!-- Renamed Header -->
+                <div id="points-section">
+                    <p>Your Total Points</p>
+                    <span id="points-display">0</span>
+                    <button id="withdraw-button" onclick="openWithdrawModal()">Withdraw</button> <!-- Added Withdraw Button -->
+                </div>
+                <ul id="task-list" class="task-list"> <p>Loading tasks...</p> </ul>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav id="bottom-nav">
+            <button id="btn-trading" onclick="showPage('page-trading', this)">Trading</button>
+            <button id="btn-news" onclick="showPage('page-news', this)">News</button>
+            <button id="btn-earn" onclick="showPage('page-earn', this)">Earn</button> <!-- Changed ID and Text -->
+        </nav>
+    </div> <!-- End #main-app -->
+
+    <!-- Buy Modal -->
+    <div id="buyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('buyModal')">&times;</span>
+            <form class="modal-form" id="buyForm" onsubmit="handleBuySubmit(event)">
+                <h3>Buy <span id="buyCoinName">Coin</span></h3>
+                <div class="form-group"><label for="buyQuantity">Coin Quantity:</label><input type="number" id="buyQuantity" name="quantity" step="any" required></div>
+                <div class="form-group"><label for="buyAddress">Your Receiving Address:</label><input type="text" id="buyAddress" name="receivingAddress" required></div>
+                <div class="form-group"><label for="buyWallet">Your Wallet / Exchange Name:</label><input type="text" id="buyWallet" name="walletName" placeholder="e.g., Binance, Trust Wallet" required></div>
+                <h4>Your Payment Information (Proof)</h4>
+                <p class="info-text">Please send payment to the details provided by the dealer and fill the form below.</p>
+                <div class="form-group"><label for="buyPaymentMethod">Payment Method Used:</label><input type="text" id="buyPaymentMethod" name="paymentMethod" placeholder="e.g., Bank Transfer, JazzCash" required></div>
+                <div class="form-group"><label for="buyAccountName">Sender Account Name:</label><input type="text" id="buyAccountName" name="accountName" required></div>
+                <div class="form-group"><label for="buyAccountNumber">Sender Account Number / IBAN:</label><input type="text" id="buyAccountNumber" name="accountNumber" required></div>
+                <div class="form-group"><label for="buyTxId">Transaction ID / Ref Number:</label><input type="text" id="buyTxId" name="transactionId" required></div>
+                <div class="form-group"><label for="buyTxPhoto">Transaction Screenshot/Photo:</label><input type="file" id="buyTxPhoto" name="transactionPhoto" accept="image/*" required></div>
+                <button type="submit">Submit Buy Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sell Modal -->
+    <div id="sellModal" class="modal">
+        <div class="modal-content">
+             <span class="close-button" onclick="closeModal('sellModal')">&times;</span>
+             <form class="modal-form" id="sellForm" onsubmit="handleSellSubmit(event)">
+                <h3>Sell <span id="sellCoinName">Coin</span></h3>
+                <div id="dealerAddressInfo" class="dealer-address-section"><!-- Address loaded by JS --></div>
+                <div class="form-group"><label for="sellQuantity">Coin Quantity You Are Selling:</label><input type="number" id="sellQuantity" name="quantity" step="any" required></div>
+                <div class="form-group"><label for="sellTxHash">Transaction ID / Hash (Crypto Sent):</label><input type="text" id="sellTxHash" name="cryptoTxHash" placeholder="Enter TxID/Hash after sending crypto" required><small style="display: block; margin-top: 4px; color: #555;">Ensure you have sent the crypto to the address shown above.</small></div>
+                <h4>Your Receiving Payment Information</h4>
+                 <p class="info-text">Enter the details where you want to receive the payment (e.g., PKR).</p>
+                <div class="form-group"><label for="sellPaymentMethod">Preferred Payment Method:</label><input type="text" id="sellPaymentMethod" name="paymentMethod" placeholder="e.g., Bank Transfer, JazzCash" required></div>
+                <div class="form-group"><label for="sellAccountName">Your Account Name:</label><input type="text" id="sellAccountName" name="accountName" required></div>
+                <div class="form-group"><label for="sellAccountNumber">Your Account Number / IBAN:</label><input type="text" id="sellAccountNumber" name="accountNumber" required></div>
+                <button type="submit">Submit Sell Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('withdrawModal')">&times;</span>
+            <form class="modal-form" id="withdrawForm" onsubmit="handleWithdrawSubmit(event)">
+                <h3>Withdraw Points</h3>
+                <div class="info-text">
+                    Your Points: <strong id="withdraw-current-points">0</strong><br>
+                    Minimum Withdrawal: <strong id="withdraw-minimum-points">10000</strong> Points
+                </div>
+                <div id="withdraw-message" class="error-message"></div> <!-- For error messages -->
+                <div class="form-group">
+                    <label for="withdraw-amount">Points to Withdraw:</label>
+                    <input type="number" id="withdraw-amount" name="amount" min="10000" required>
+                </div>
+                <div class="form-group">
+                    <label for="withdraw-method">Payment Method:</label>
+                    <select id="withdraw-method" name="method" required>
+                        <option value="" disabled selected>Select Method</option>
+                        <option value="Easypaisa">Easypaisa</option>
+                        <option value="Jazzcash">Jazzcash</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="withdraw-account-name">Account Holder Name:</label>
+                    <input type="text" id="withdraw-account-name" name="accountName" required>
+                </div>
+                <div class="form-group">
+                    <label for="withdraw-account-number">Account Number:</label>
+                    <input type="text" id="withdraw-account-number" name="accountNumber" required>
+                </div>
+                <button type="submit">Submit Withdrawal Request</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      // Firebase Imports
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+      import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+      import { getDatabase, ref, onValue, set, get, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js"; // Added serverTimestamp
+
+      // Firebase Config (REPLACE with your actual config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHJC00C6CcbVn4cp2Gu-WC6CzhbofKNnE", // Secure this
+            authDomain: "trading-94d96.firebaseapp.com",
+            databaseURL: "https://trading-94d96-default-rtdb.firebaseio.com",
+            projectId: "trading-94d96",
+            storageBucket: "trading-94d96.appspot.com",
+            messagingSenderId: "570063192101",
+            appId: "1:570063192101:web:99c855fc5b5d1b8c357fcc",
+            measurementId: "G-CPX5MXDLB0"
+        };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getDatabase(app);
+
+      // --- DOM References ---
+      const authContainer = document.getElementById('auth-container');
+      const mainAppContainer = document.getElementById('main-app');
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      const loginErrorDiv = document.getElementById('login-error');
+      const signupErrorDiv = document.getElementById('signup-error');
+      const bodyElement = document.body;
+      const pointsDisplay = document.getElementById('points-display');
+      const pages = document.querySelectorAll('#main-app .page');
+      const navButtons = document.querySelectorAll('#bottom-nav button');
+      const buyModal = document.getElementById('buyModal');
+      const sellModal = document.getElementById('sellModal');
+      const withdrawModal = document.getElementById('withdrawModal'); // Withdraw modal ref
+      const buyCoinNameSpan = document.getElementById('buyCoinName');
+      const sellCoinNameSpan = document.getElementById('sellCoinName');
+      const buyForm = document.getElementById('buyForm');
+      const sellForm = document.getElementById('sellForm');
+      const withdrawForm = document.getElementById('withdrawForm'); // Withdraw form ref
+      const withdrawMessageDiv = document.getElementById('withdraw-message'); // Withdraw message div
+      const withdrawCurrentPointsSpan = document.getElementById('withdraw-current-points');
+      const withdrawMinimumPointsSpan = document.getElementById('withdraw-minimum-points');
+      const withdrawButton = document.getElementById('withdraw-button');
+      const dealerAddressInfoDiv = document.getElementById('dealerAddressInfo');
+      const newsContainer = document.getElementById('news-container');
+      const taskListUl = document.getElementById('task-list');
+      const profileButton = document.getElementById('profile-button');
+      const profilePopup = document.getElementById('profile-popup');
+      const profileUserNameSpan = document.getElementById('profile-user-name');
+      const profileUserEmailSpan = document.getElementById('profile-user-email');
+      const profileLogoutButton = document.getElementById('profile-logout-button');
+
+      // --- State Variables ---
+      let userPoints = 0;
+      let currentUserId = null;
+      let currentUserName = null; // Store user name
+      let currentUserEmail = null; // Store user email
+      const MIN_WITHDRAWAL_POINTS = 10000; // Minimum points for withdrawal
+      const dealerAddresses = {
+            "Sidra Chain": "0x023621E749dBD87b9EA06fd11d6893C4761DaBF7",
+            "USDT (TRC20)": "TKheWvzZB8WekfdQwUbp8VW4u6nfUmNedi"
+      };
+       let listeners = {};
+       const TASK_TIMER_DURATION = 30; // Seconds
+       let completedTaskKeys = new Set(); // Store completed task keys for the current user
+
+       // --- Utility Functions ---
+        function setAuthError(type, message) { const errorDiv = type === 'login' ? loginErrorDiv : signupErrorDiv; errorDiv.textContent = message; }
+        function clearAuthErrors() { loginErrorDiv.textContent = ''; signupErrorDiv.textContent = ''; }
+        function showLoginForm() { loginForm.style.display = 'block'; signupForm.style.display = 'none'; clearAuthErrors(); }
+        window.showLoginForm = showLoginForm;
+        function showSignupForm() { loginForm.style.display = 'none'; signupForm.style.display = 'block'; clearAuthErrors(); }
+        window.showSignupForm = showSignupForm;
+
+       // --- Firebase Auth Listener ---
+       onAuthStateChanged(auth, (user) => {
+            // Detach previous listeners
+            Object.values(listeners).forEach(listenerObj => listenerObj.detach());
+            listeners = {};
+            profilePopup.classList.remove('show'); // Hide profile popup on auth change
+
+            if (user) {
+                currentUserId = user.uid;
+                currentUserEmail = user.email;
+                console.log("User logged in:", currentUserEmail, "UID:", currentUserId);
+
+                // Fetch user data (including name) from DB
+                const userRef = ref(db, `users/${currentUserId}`);
+                get(userRef).then((snapshot) => {
+                    if (snapshot.exists() && snapshot.val().name) {
+                        currentUserName = snapshot.val().name;
+                    } else {
+                        currentUserName = "User"; // Fallback name
+                         // If name doesn't exist in DB, try to get it from auth (might be null)
+                        if (user.displayName) currentUserName = user.displayName;
+                    }
+                    // Update profile popup
+                    profileUserNameSpan.textContent = currentUserName;
+                    profileUserEmailSpan.textContent = currentUserEmail;
+                }).catch(error => {
+                    console.error("Error fetching user data:", error);
+                    currentUserName = "User"; // Fallback on error
+                    profileUserNameSpan.textContent = "Error";
+                    profileUserEmailSpan.textContent = currentUserEmail || "N/A";
+                });
+
+                authContainer.style.display = 'none';
+                mainAppContainer.style.display = 'block';
+                bodyElement.classList.add('logged-in');
+                showPage('page-trading', document.getElementById('btn-trading')); // Default to trading page
+
+                // Start listening to data
+                listenToData('coins', displayCoinPrices);
+                listenToData('news', displayNews);
+                listenToData('tasks', displayTasks); // 'tasks' path still used in DB
+                listenToData(`users/${currentUserId}/points`, displayUserPoints);
+                listenToData(`users/${currentUserId}/completedTasks`, refreshTaskCompletionStatus); // Listen for completed tasks changes
+
+            } else {
+                currentUserId = null;
+                currentUserName = null;
+                currentUserEmail = null;
+                userPoints = 0; // Reset points on logout
+                completedTaskKeys = new Set(); // Reset completed tasks on logout
+                console.log("User logged out");
+                authContainer.style.display = 'block';
+                mainAppContainer.style.display = 'none';
+                bodyElement.classList.remove('logged-in');
+                showLoginForm();
+
+                // Clear dynamic content
+                if (pointsDisplay) pointsDisplay.textContent = userPoints;
+                if (newsContainer) newsContainer.innerHTML = '<p>Log in for news.</p>';
+                if (taskListUl) taskListUl.innerHTML = '<p>Log in for tasks.</p>';
+                if (withdrawButton) withdrawButton.disabled = true; // Disable withdraw button
+                 profileUserNameSpan.textContent = 'Loading...';
+                 profileUserEmailSpan.textContent = 'Loading...';
+                 const priceSpans = document.querySelectorAll('.coin-price-usd, .coin-price-pkr');
+                 priceSpans.forEach(span => span.textContent = '...');
+            }
+        });
+
+        // --- Generic Real-time Data Listener ---
+        function listenToData(path, displayFunction) {
+            const dataRef = ref(db, path);
+            let currentSnapshot = null; // Variable to hold the latest snapshot
+            const detachListener = onValue(dataRef, (snapshot) => {
+                 currentSnapshot = snapshot; // Update snapshot on new data
+                 displayFunction(snapshot);
+            }, (error) => {
+                console.error(`Error listening to ${path}:`, error);
+                 currentSnapshot = null; // Reset snapshot on error
+                 displayFunction(null, error); // Call display function with error info
+            });
+            // Store the detach function and a way to get the last snapshot
+            listeners[path] = { detach: detachListener, getSnapshot: () => currentSnapshot };
+        }
+
+
+        // --- Data Display Functions ---
+        function displayCoinPrices(snapshot, error = null) {
+            const sidraUsdEl = document.getElementById('price-sidra-usd');
+            const sidraPkrEl = document.getElementById('price-sidra-pkr');
+            const usdtUsdEl = document.getElementById('price-usdt_trc20-usd');
+            const usdtPkrEl = document.getElementById('price-usdt_trc20-pkr');
+
+            const updateElements = (usdEl, pkrEl, usdVal, pkrVal) => {
+                 if (usdEl) usdEl.textContent = usdVal !== undefined && usdVal !== null ? `$${Number(usdVal).toFixed(2)}` : '$ N/A';
+                 if (pkrEl) pkrEl.textContent = pkrVal !== undefined && pkrVal !== null ? `PKR ${Number(pkrVal).toFixed(2)}` : 'PKR N/A';
+            };
+
+            if (error) {
+                console.error("Error displaying coin prices:", error);
+                updateElements(sidraUsdEl, sidraPkrEl, undefined, undefined);
+                updateElements(usdtUsdEl, usdtPkrEl, undefined, undefined);
+                return;
+            }
+
+             if (snapshot && snapshot.exists()) {
+                 const coinsData = snapshot.val();
+                 updateElements(sidraUsdEl, sidraPkrEl, coinsData.sidra?.price, coinsData.sidra?.price_pkr);
+                 updateElements(usdtUsdEl, usdtPkrEl, coinsData.usdt_trc20?.price, coinsData.usdt_trc20?.price_pkr);
+            } else {
+                 console.log("No coin price data found.");
+                 updateElements(sidraUsdEl, sidraPkrEl, undefined, undefined);
+                 updateElements(usdtUsdEl, usdtPkrEl, undefined, undefined);
+            }
+        }
+
+        function displayNews(snapshot, error = null) {
+            newsContainer.innerHTML = ''; // Clear previous news
+             if (error) {
+                 console.error("Error displaying news:", error);
+                 newsContainer.innerHTML = '<p>Error loading news articles.</p>';
+                 return;
+             }
+            if (snapshot && snapshot.exists()) {
+                const newsData = snapshot.val();
+                // Sort by timestamp descending if available, otherwise just use keys
+                const newsKeys = Object.keys(newsData).sort((a, b) => (newsData[b]?.timestamp || 0) - (newsData[a]?.timestamp || 0));
+
+                if (newsKeys.length === 0) {
+                    newsContainer.innerHTML = '<p>No news available at the moment.</p>';
+                    return;
+                }
+
+                newsKeys.forEach(key => {
+                    const item = newsData[key];
+                    if (!item || typeof item !== 'object') return; // Skip invalid entries
+
+                    const newsDiv = document.createElement('div');
+                    newsDiv.className = 'news-item';
+                    newsDiv.innerHTML = `
+                        <img src="${item.imageUrl || 'https://via.placeholder.com/300x150/cccccc/ffffff?text=No+Image'}" alt="${item.title || 'News Image'}" class="news-image" onerror="this.src='https://via.placeholder.com/300x150/cccccc/ffffff?text=Image+Error';">
+                        <div class="news-content">
+                           <h3 class="news-title">${item.title || 'Untitled Article'}</h3>
+                           <p class="news-text">${item.text || 'No content available.'}</p>
+                        </div>
+                        ${item.joinLink ? `<a href="${item.joinLink}" target="_blank" rel="noopener noreferrer" class="join-button">Join / Learn More</a>` : '<a href="#" class="join-button disabled" style="pointer-events: none; opacity: 0.6;">No Link Available</a>'}
+                    `;
+                    newsContainer.appendChild(newsDiv);
+                });
+            } else {
+                 newsContainer.innerHTML = '<p>No news available at the moment.</p>';
+            }
+        }
+
+         function refreshTaskCompletionStatus(snapshot, error = null) {
+             completedTaskKeys = new Set(); // Reset before populating
+             if (error) {
+                 console.error("Error fetching completed tasks status:", error);
+                 // Optionally trigger a task re-render even on error to clear old states
+                 const tasksListener = listeners['tasks'];
+                 if (tasksListener) {
+                     const tasksSnapshot = tasksListener.getSnapshot();
+                     if (tasksSnapshot) displayTasks(tasksSnapshot);
+                 }
+                 return;
+             }
+
+             if (snapshot && snapshot.exists()) {
+                 const completedData = snapshot.val();
+                 Object.keys(completedData).forEach(key => {
+                     if (completedData[key] === true) { // Check if value is explicitly true
+                         completedTaskKeys.add(key);
+                     }
+                 });
+             }
+             // Re-render tasks to update button states using the latest tasks data snapshot
+             const tasksListener = listeners['tasks']; // 'tasks' path in DB
+             if (tasksListener) {
+                 const tasksSnapshot = tasksListener.getSnapshot();
+                 if (tasksSnapshot) {
+                     displayTasks(tasksSnapshot); // Re-display tasks with updated completion status
+                 } else {
+                    // Tasks haven't loaded yet, displayTasks will handle it when they do.
+                    console.log("Task completion status updated, waiting for tasks data to render UI.");
+                 }
+             }
+         }
+
+
+        function displayTasks(snapshot, error = null) {
+             taskListUl.innerHTML = ''; // Clear previous tasks
+             if (error) {
+                 console.error("Error displaying tasks:", error);
+                 taskListUl.innerHTML = '<p>Error loading available tasks.</p>';
+                 return;
+             }
+             if (snapshot && snapshot.exists()) {
+                const tasksData = snapshot.val();
+                 // Sort by timestamp descending if available, otherwise just use keys
+                const taskKeys = Object.keys(tasksData).sort((a, b) => (tasksData[b]?.timestamp || 0) - (tasksData[a]?.timestamp || 0));
+                let activeTasksFound = false;
+
+                taskKeys.forEach(key => {
+                    const item = tasksData[key];
+                     // Basic validation for task item structure
+                    if (!item || typeof item !== 'object' || !item.description || item.points === undefined) {
+                        console.warn("Skipping invalid task item:", key, item);
+                        return;
+                    }
+
+                    // Only display tasks marked as 'active'
+                    if (item.status === 'active') {
+                        activeTasksFound = true;
+                        const taskLi = document.createElement('li');
+                        taskLi.className = 'task-item';
+                        taskLi.dataset.taskId = key;
+                        taskLi.dataset.points = item.points || 0;
+                        taskLi.dataset.link = item.link || '';
+
+                        const isCompleted = completedTaskKeys.has(key); // Check if task ID is in the completed set
+
+                        let actionHtml = '';
+                        if (isCompleted) {
+                            actionHtml = '<span class="completed-message">Completed</span>'; // Show "Completed" text
+                        } else {
+                            // If not completed, show visit button and placeholder for timer/claim
+                            actionHtml = `
+                                <button class="visit-button" onclick="startTaskTimer('${key}')">Visit</button>
+                                <div class="timer-claim-section" style="display: none;">
+                                    <span class="timer"></span>
+                                    <button class="claim-button" style="display: none;"></button>
+                                </div>
+                            `;
+                        }
+
+                         taskLi.innerHTML = `
+                            <span class="task-desc">${item.description} (+${item.points || 0} Pts)</span>
+                            <div class="task-actions">
+                                ${actionHtml}
+                            </div>
+                        `;
+                        taskListUl.appendChild(taskLi);
+                    }
+                });
+                 if (!activeTasksFound) {
+                     taskListUl.innerHTML = '<p>No active tasks available right now.</p>';
+                 }
+            } else {
+                 taskListUl.innerHTML = '<p>No tasks available.</p>';
+             }
+        }
+
+         function displayUserPoints(snapshot, error = null) {
+             if (error) {
+                 console.error("Error displaying user points:", error);
+                 if (pointsDisplay) pointsDisplay.textContent = 'Err';
+                 if (withdrawButton) withdrawButton.disabled = true;
+                 userPoints = 0; // Reset points on error
+                 return;
+             }
+
+             if (snapshot && snapshot.exists()) {
+                 userPoints = snapshot.val();
+                 if (typeof userPoints !== 'number') {
+                     console.warn("User points value is not a number:", userPoints);
+                     userPoints = 0; // Default to 0 if data is invalid
+                     // Optionally try to fix it in DB if currentUserId is known
+                     if (currentUserId) {
+                        set(ref(db, `users/${currentUserId}/points`), 0).catch(err => console.error("Failed to reset invalid points in DB:", err));
+                     }
+                 }
+             } else {
+                 // If points don't exist for the user, initialize them to 0
+                 userPoints = 0;
+                 if (currentUserId) {
+                     const pointsRef = ref(db, `users/${currentUserId}/points`);
+                     set(pointsRef, 0).catch(err => console.error("Failed to initialize user points:", err));
+                 }
+             }
+             // Update points display
+             if (pointsDisplay) pointsDisplay.textContent = userPoints;
+             // Enable/disable withdraw button based on points
+             if (withdrawButton) {
+                 withdrawButton.disabled = userPoints < MIN_WITHDRAWAL_POINTS;
+             }
+             // Update points in withdraw modal if it's open
+             if (withdrawModal.classList.contains('show')) {
+                  withdrawCurrentPointsSpan.textContent = userPoints;
+                  const amountInput = document.getElementById('withdraw-amount');
+                  if(amountInput) amountInput.max = userPoints;
+             }
+         }
+
+        // --- Event Listeners & Logic ---
+        // Signup Form
+        signupForm.addEventListener('submit', (e) => {
+             e.preventDefault();
+             clearAuthErrors();
+             const nameInput = document.getElementById('signup-name');
+             const emailInput = document.getElementById('signup-email');
+             const passwordInput = document.getElementById('signup-password');
+             const confirmPasswordInput = document.getElementById('signup-confirm-password');
+
+             const name = nameInput.value.trim();
+             const email = emailInput.value.trim();
+             const password = passwordInput.value;
+             const confirmPassword = confirmPasswordInput.value;
+
+             if (!name) { setAuthError('signup', 'Please enter your full name.'); nameInput.focus(); return; }
+             if (!email) { setAuthError('signup', 'Please enter your email address.'); emailInput.focus(); return; }
+             if (!password) { setAuthError('signup', 'Please enter a password.'); passwordInput.focus(); return; }
+             if (password.length < 6) { setAuthError('signup', 'Password should be at least 6 characters long.'); passwordInput.focus(); return; }
+             if (password !== confirmPassword) { setAuthError('signup', 'Passwords do not match.'); confirmPasswordInput.focus(); return; }
+
+             // Disable button during submission
+             const submitButton = signupForm.querySelector('button[type="submit"]');
+             submitButton.disabled = true;
+             submitButton.textContent = 'Signing Up...';
+
+             createUserWithEmailAndPassword(auth, email, password)
+               .then((userCredential) => {
+                    const user = userCredential.user;
+                    // Store additional user info (name, email, initial points) in Realtime Database
+                    const initDataRef = ref(db, `users/${user.uid}`);
+                    set(initDataRef, {
+                        name: name,
+                        email: email,
+                        points: 0,
+                        completedTasks: {}, // Initialize completed tasks
+                        joinedAt: serverTimestamp() // Track join time
+                    }).then(() => {
+                        console.log("User created and data initialized in DB");
+                        signupForm.reset();
+                        // Auth state listener will handle redirect/UI update
+                    }).catch(dbError => {
+                        console.error("Error saving user data to DB:", dbError);
+                        // User account was created, but DB write failed. Inform user.
+                        setAuthError('signup', 'Account created, but failed to save profile. Please log out and log in again, or contact support.');
+                    }).finally(() => {
+                         submitButton.disabled = false; // Re-enable button
+                         submitButton.textContent = 'Sign Up';
+                    });
+                })
+                .catch((error) => {
+                    console.error("Signup Error:", error.code, error.message);
+                    let message = "Failed to create account. Please try again.";
+                    if (error.code === 'auth/email-already-in-use') { message = 'This email address is already registered.'; emailInput.focus(); }
+                    else if (error.code === 'auth/invalid-email') { message = 'Please enter a valid email address.'; emailInput.focus(); }
+                    else if (error.code === 'auth/weak-password') { message = 'Password is too weak. Please use a stronger password.'; passwordInput.focus(); }
+                    setAuthError('signup', message);
+                    submitButton.disabled = false; // Re-enable button
+                    submitButton.textContent = 'Sign Up';
+                });
+        });
+
+        // Login Form
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearAuthErrors();
+            const emailInput = document.getElementById('login-email');
+            const passwordInput = document.getElementById('login-password');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email) { setAuthError('login', 'Please enter your email address.'); emailInput.focus(); return; }
+            if (!password) { setAuthError('login', 'Please enter your password.'); passwordInput.focus(); return; }
+
+            const submitButton = loginForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Logging In...';
+
+            signInWithEmailAndPassword(auth, email, password)
+              .then((userCredential) => {
+                 loginForm.reset();
+                 // Auth state listener handles UI changes
+                 // No need to re-enable button here as page will reload/change state
+              })
+              .catch((error) => {
+                 console.error("Login Error:", error.code, error.message);
+                 let message = "Login failed. Please check your details and try again.";
+                  if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email') {
+                      message = 'Incorrect email or password.';
+                      emailInput.focus();
+                  } else if (error.code === 'auth/too-many-requests') {
+                      message = 'Access temporarily disabled due to too many login attempts. Please try again later.';
+                  }
+                 setAuthError('login', message);
+                 submitButton.disabled = false; // Re-enable button on error
+                 submitButton.textContent = 'Login';
+              });
+        });
+
+        // Profile Button Toggle
+         profileButton.addEventListener('click', (e) => {
+             e.stopPropagation(); // Prevent click from closing popup immediately
+             profilePopup.classList.toggle('show');
+         });
+
+         // Logout Button (inside profile popup)
+         profileLogoutButton.addEventListener('click', () => {
+             signOut(auth).then(() => {
+                 console.log("User signed out successfully.");
+                 // Auth listener will handle UI reset
+             }).catch((e) => {
+                 console.error("Signout Error:", e);
+                 alert("Error signing out. Please try again.");
+             });
+         });
+
+         // Close profile popup if clicking outside
+         document.addEventListener('click', (e) => {
+             if (!profileButton.contains(e.target) && !profilePopup.contains(e.target)) {
+                 if (profilePopup.classList.contains('show')) {
+                     profilePopup.classList.remove('show');
+                 }
+             }
+         });
+
+
+        // --- Application Logic ---
+        function showPage(pageId, clickedButton) {
+            pages.forEach(page => page.classList.remove('active'));
+            navButtons.forEach(button => button.classList.remove('active'));
+            const pageToShow = document.getElementById(pageId);
+            if (pageToShow) {
+                pageToShow.classList.add('active');
+                // Special handling for earn page to ensure withdraw button state is correct
+                if (pageId === 'page-earn' && withdrawButton) {
+                    withdrawButton.disabled = userPoints < MIN_WITHDRAWAL_POINTS;
+                }
+            } else {
+                console.error("Page not found:", pageId);
+                // Show a default page if requested one doesn't exist
+                document.getElementById('page-trading')?.classList.add('active');
+                document.getElementById('btn-trading')?.classList.add('active');
+            }
+            if (clickedButton) clickedButton.classList.add('active');
+            window.scrollTo(0, 0); // Scroll to top on page change
+            profilePopup.classList.remove('show'); // Close profile popup when changing pages
+        }
+        window.showPage = showPage;
+
+        // Task Timer Logic
+        async function startTaskTimer(taskId) {
+             if (!currentUserId) { alert("Please log in to start tasks."); return; }
+             if (completedTaskKeys.has(taskId)) { console.log("Task already completed."); return; } // Prevent starting completed tasks
+
+             const taskLi = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+             if (!taskLi) { console.error("Task element not found:", taskId); return; }
+
+             const visitButton = taskLi.querySelector('.visit-button');
+             const timerClaimSection = taskLi.querySelector('.timer-claim-section');
+             const timerSpan = timerClaimSection?.querySelector('.timer');
+             const claimButton = timerClaimSection?.querySelector('.claim-button');
+             const link = taskLi.dataset.link;
+
+             if (!timerClaimSection || !timerSpan || !claimButton) {
+                 console.error("Timer/Claim elements missing in task item:", taskId);
+                 return;
+             }
+
+             // Clear any existing timer for this task (safety measure)
+             const existingIntervalId = taskLi.dataset.intervalId;
+             if (existingIntervalId) clearInterval(parseInt(existingIntervalId));
+
+             if(visitButton) visitButton.style.display = 'none'; // Hide visit button
+             timerClaimSection.style.display = 'flex'; // Show timer/claim section
+             timerSpan.textContent = `Wait ${TASK_TIMER_DURATION}s`;
+             timerSpan.style.display = 'inline'; // Show timer span
+             claimButton.style.display = 'none'; // Hide claim button initially
+             claimButton.disabled = true; // Ensure claim button starts disabled
+
+             if (link) {
+                 try {
+                     window.open(link, '_blank', 'noopener,noreferrer'); // Open link in new tab safely
+                 } catch (e) {
+                     console.error("Error opening link:", e);
+                     alert("Could not open the task link. Please check your popup blocker settings.");
+                     // Reset UI if link fails to open?
+                     if(visitButton) visitButton.style.display = 'inline-block';
+                     timerClaimSection.style.display = 'none';
+                     return; // Stop timer if link fails
+                 }
+             } else {
+                 console.warn("No link provided for task:", taskId);
+                 // Timer will still run even without a link
+             }
+
+             let secondsRemaining = TASK_TIMER_DURATION;
+             const intervalId = setInterval(() => {
+                 // Ensure the task element still exists before updating
+                 const currentTaskLi = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+                 if (!currentTaskLi) {
+                     clearInterval(intervalId);
+                     console.warn("Task element removed during timer:", taskId);
+                     return;
+                 }
+                 const currentTimerSpan = currentTaskLi.querySelector('.timer');
+                 const currentClaimButton = currentTaskLi.querySelector('.claim-button');
+
+
+                 secondsRemaining--;
+                 if(currentTimerSpan) currentTimerSpan.textContent = `Wait ${secondsRemaining}s`;
+
+                 if (secondsRemaining <= 0) {
+                     clearInterval(intervalId);
+                     currentTaskLi.removeAttribute('data-interval-id'); // Clear stored interval ID
+                     if(currentTimerSpan) currentTimerSpan.style.display = 'none'; // Hide timer span
+                     if(currentClaimButton) {
+                         currentClaimButton.textContent = `Claim +${currentTaskLi.dataset.points || 0} Pts`;
+                         currentClaimButton.style.display = 'inline-block'; // Show claim button
+                         currentClaimButton.disabled = false; // Enable claim button
+                         // Re-assign click handler to be sure it's current
+                         currentClaimButton.onclick = () => claimTaskPoints(taskId, parseInt(currentTaskLi.dataset.points || 0));
+                     }
+                 }
+             }, 1000);
+             taskLi.dataset.intervalId = intervalId.toString(); // Store interval ID as string
+        }
+        window.startTaskTimer = startTaskTimer;
+
+        // Claim Task Logic
+        async function claimTaskPoints(taskId, pointsValue) {
+             if (!currentUserId) { alert("Please log in to claim points."); return; }
+             // Double check completion status locally first
+             if (completedTaskKeys.has(taskId)) {
+                 console.log("Task already marked as completed locally:", taskId);
+                 // Ensure UI reflects completion state if inconsistent
+                 const taskLiCheck = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+                 const timerClaimSectionCheck = taskLiCheck?.querySelector('.timer-claim-section');
+                 if (timerClaimSectionCheck && !timerClaimSectionCheck.querySelector('.completed-message')) {
+                     timerClaimSectionCheck.innerHTML = '<span class="completed-message">Completed</span>';
+                 }
+                 return;
+             }
+
+             const taskLi = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+             const claimButton = taskLi?.querySelector('.claim-button');
+             const timerClaimSection = taskLi?.querySelector('.timer-claim-section');
+
+             if(claimButton) {
+                 claimButton.disabled = true;
+                 claimButton.textContent = 'Claiming...';
+             } else {
+                 console.warn("Claim button not found for task:", taskId);
+                 // May have already been replaced by "Completed" text
+             }
+
+             const pointsRef = ref(db, `users/${currentUserId}/points`);
+             const completionRef = ref(db, `users/${currentUserId}/completedTasks/${taskId}`);
+
+            try {
+                 // Check completion status in DB again *right before* the transaction
+                 const completionSnapshot = await get(completionRef);
+                 if (completionSnapshot.exists() && completionSnapshot.val() === true) {
+                      console.warn("Task already claimed in DB (checked just before transaction).");
+                      if (!completedTaskKeys.has(taskId)) completedTaskKeys.add(taskId); // Sync local state
+                      if(timerClaimSection) {
+                          timerClaimSection.innerHTML = '<span class="completed-message">Completed</span>';
+                      }
+                      return; // Exit if already claimed in DB
+                 }
+
+                 // Use transaction for safely incrementing points
+                 const transactionResult = await runTransaction(pointsRef, (currentPoints) => {
+                    if (currentPoints === null) return pointsValue; // Initialize if null
+                    return currentPoints + pointsValue;
+                 });
+
+                 if (transactionResult.committed) {
+                    // Points updated successfully, now mark task as completed
+                    await set(completionRef, true);
+                    console.log(`Points updated. New total: ${transactionResult.snapshot.val()}`);
+                    completedTaskKeys.add(taskId); // Update local state immediately
+
+                    // Update UI: Replace the timer/claim section with "Completed" text
+                    if(timerClaimSection) {
+                        timerClaimSection.innerHTML = '<span class="completed-message">Completed</span>';
+                    }
+                    // The points display will update automatically via the onValue listener
+
+                 } else {
+                     // Transaction aborted (e.g., contention or network issue)
+                     console.warn("Points transaction aborted for task:", taskId);
+                     throw new Error("Could not update points. Please try claiming again.");
+                 }
+
+            } catch (error) {
+                console.error("Error claiming task points:", error);
+                alert(`Error claiming points: ${error.message || 'Please try again.'}`);
+                // Re-enable the claim button if it exists and the task isn't marked completed locally
+                if (claimButton && !completedTaskKeys.has(taskId)) {
+                    claimButton.disabled = false;
+                    claimButton.textContent = `Claim +${pointsValue} Pts`;
+                }
+            }
+        }
+         window.claimTaskPoints = claimTaskPoints;
+
+
+        // --- Modals ---
+        function openBuyModal(coinName) {
+            buyCoinNameSpan.textContent = coinName;
+            buyForm.reset(); // Clear previous form data
+            buyModal.classList.add('show');
+        }
+        window.openBuyModal = openBuyModal;
+
+        function openSellModal(coinName) {
+            sellCoinNameSpan.textContent = coinName;
+            sellForm.reset(); // Clear previous form data
+            const address = dealerAddresses[coinName];
+            if (address) {
+                 dealerAddressInfoDiv.innerHTML = `<p>Send <strong>${coinName}</strong> to the following address:</p><p class="address">${address}</p>`;
+            } else {
+                 dealerAddressInfoDiv.innerHTML = `<p style="color: red;">Address is currently unavailable for ${coinName}. Cannot proceed with selling.</p>`;
+                 // Optionally disable form fields or submit button if address is missing
+            }
+            sellModal.classList.add('show');
+        }
+        window.openSellModal = openSellModal;
+
+        function openWithdrawModal() {
+            withdrawMessageDiv.textContent = ''; // Clear previous messages
+            if (!currentUserId) { alert("Please log in to access the withdrawal feature."); return; }
+
+            // Update current points display in the modal
+            withdrawCurrentPointsSpan.textContent = userPoints;
+            withdrawMinimumPointsSpan.textContent = MIN_WITHDRAWAL_POINTS;
+
+            if (userPoints < MIN_WITHDRAWAL_POINTS) {
+                alert(`Sorry, you need at least ${MIN_WITHDRAWAL_POINTS} points to make a withdrawal request. You currently have ${userPoints} points.`);
+                return; // Don't open modal if not enough points
+            }
+
+            // Set min/max for amount input based on current state
+            const amountInput = document.getElementById('withdraw-amount');
+            if(amountInput) {
+                amountInput.min = MIN_WITHDRAWAL_POINTS;
+                amountInput.max = userPoints;
+                amountInput.placeholder = `Min ${MIN_WITHDRAWAL_POINTS}, Max ${userPoints}`;
+            }
+
+            withdrawForm.reset(); // Clear previous form data
+            withdrawModal.classList.add('show');
+        }
+        window.openWithdrawModal = openWithdrawModal;
+
+        function closeModal(modalId) {
+            const modalToClose = document.getElementById(modalId);
+            if (modalToClose) {
+                modalToClose.classList.remove('show');
+                // Optional: Clear specific modal content on close
+                if (modalId === 'withdrawModal') {
+                    withdrawMessageDiv.textContent = '';
+                    withdrawForm.reset();
+                } else if (modalId === 'buyModal') {
+                    buyForm.reset();
+                } else if (modalId === 'sellModal') {
+                    sellForm.reset();
+                }
+            }
+        }
+        window.closeModal = closeModal;
+
+        // Placeholder submit handlers - NEED SECURE BACKEND for actual processing
+        function handleBuySubmit(event) {
+            event.preventDefault();
+            console.log("Buy Submit (Simulation - Needs Backend)");
+            // Basic client-side validation example (add more as needed)
+            const quantity = document.getElementById('buyQuantity').value;
+            const address = document.getElementById('buyAddress').value;
+            const photo = document.getElementById('buyTxPhoto').files.length;
+            if (!quantity || quantity <= 0 || !address || photo === 0) {
+                alert("Please fill all required fields, including quantity, address, and transaction proof.");
+                return;
+            }
+            alert(`Buy order submitted (Simulation). This requires backend processing for verification and fulfillment.`);
+            // In real app: gather FormData, send to backend API
+            closeModal('buyModal');
+        }
+        window.handleBuySubmit = handleBuySubmit;
+
+        function handleSellSubmit(event) {
+            event.preventDefault();
+            console.log("Sell Submit (Simulation - Needs Backend)");
+            // Basic client-side validation example
+            const quantity = document.getElementById('sellQuantity').value;
+            const txHash = document.getElementById('sellTxHash').value;
+            const accountNum = document.getElementById('sellAccountNumber').value;
+            if (!quantity || quantity <= 0 || !txHash || !accountNum) {
+                 alert("Please fill all required fields, including quantity, transaction hash, and your receiving account number.");
+                 return;
+            }
+            alert(`Sell order submitted (Simulation). This requires backend processing for verification and payment.`);
+            // In real app: gather form data, send to backend API
+            closeModal('sellModal');
+        }
+        window.handleSellSubmit = handleSellSubmit;
+
+        function handleWithdrawSubmit(event) {
+            event.preventDefault();
+            withdrawMessageDiv.textContent = ''; // Clear previous messages
+            if (!currentUserId) { alert("Authentication error. Please log in again."); return; }
+
+            const amountInput = document.getElementById('withdraw-amount');
+            const methodInput = document.getElementById('withdraw-method');
+            const accountNameInput = document.getElementById('withdraw-account-name');
+            const accountNumberInput = document.getElementById('withdraw-account-number');
+            const submitButton = withdrawForm.querySelector('button[type="submit"]');
+
+
+            const amount = parseInt(amountInput.value);
+            const method = methodInput.value;
+            const accountName = accountNameInput.value.trim();
+            const accountNumber = accountNumberInput.value.trim();
+
+            // Enhanced Validation
+            if (isNaN(amount)) { withdrawMessageDiv.textContent = 'Please enter a valid number for the amount.'; amountInput.focus(); return; }
+            if (amount < MIN_WITHDRAWAL_POINTS) { withdrawMessageDiv.textContent = `Minimum withdrawal amount is ${MIN_WITHDRAWAL_POINTS} points.`; amountInput.focus(); return; }
+            if (amount > userPoints) { withdrawMessageDiv.textContent = `Insufficient points. You only have ${userPoints} points available.`; amountInput.focus(); return; }
+            if (!method) { withdrawMessageDiv.textContent = 'Please select a payment method.'; methodInput.focus(); return; }
+            if (!accountName) { withdrawMessageDiv.textContent = 'Please enter the account holder name.'; accountNameInput.focus(); return; }
+            if (!accountNumber) { withdrawMessageDiv.textContent = 'Please enter the account number.'; accountNumberInput.focus(); return; }
+            // Basic check for typical mobile money number lengths (adjust as needed)
+            if ((method === 'Easypaisa' || method === 'Jazzcash') && !/^\d{10,12}$/.test(accountNumber.replace(/\s+/g, ''))) {
+                 withdrawMessageDiv.textContent = `Please enter a valid ${method} account number (usually 10-12 digits).`; accountNumberInput.focus(); return;
+            }
+
+            // --- SIMULATION ---
+            // Disable button during "processing"
+            submitButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+
+            console.log("Withdrawal Request (Simulation):", {
+                userId: currentUserId,
+                userName: currentUserName, // Include name for easier processing
+                userEmail: currentUserEmail, // Include email
+                amount: amount,
+                method: method,
+                accountName: accountName,
+                accountNumber: accountNumber,
+                requestTimestamp: new Date().toISOString()
+            });
+
+            // Simulate backend delay/processing
+            setTimeout(() => {
+                alert(`Withdrawal request for ${amount} points to ${method} account ${accountNumber} submitted (Simulation).\n\nPlease allow time for processing. Status updates are not implemented in this demo.`);
+
+                // IMPORTANT: In a REAL application:
+                // 1. Send the data above to a secure backend (e.g., Firebase Cloud Function).
+                // 2. The backend verifies the user, checks points balance AGAIN.
+                // 3. If valid, the backend deducts points using a transaction.
+                // 4. Backend logs the request (e.g., in a 'withdrawal_requests' node) with status 'pending'.
+                // 5. An admin processes the request and updates the status (e.g., 'completed', 'rejected').
+                // DO NOT deduct points directly from the client-side after submission in a real app.
+
+                // Re-enable button and close modal after simulation
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Withdrawal Request';
+                closeModal('withdrawModal');
+
+            }, 1500); // Simulate 1.5 second delay
+
+        }
+        window.handleWithdrawSubmit = handleWithdrawSubmit;
+
+
+        // --- Initial Setup ---
+        // Close modals if clicking outside the content area
+        window.onclick = function(event) {
+             if (event.target == buyModal) closeModal('buyModal');
+             if (event.target == sellModal) closeModal('sellModal');
+             if (event.target == withdrawModal) closeModal('withdrawModal');
+             // Profile popup closing is handled by its own specific listener
+        }
+
+         // Set minimum withdrawal amount in the modal text dynamically on load
+         if(withdrawMinimumPointsSpan) withdrawMinimumPointsSpan.textContent = MIN_WITHDRAWAL_POINTS;
+
+    </script>
+</body>
+</html>
