@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ### EDIT HERE ### -->
+    <!-- آپ کے ایپ کا نام یہاں سیٹ کر دیا گیا ہے -->
+    <title>Game Tournament - Download</title>
+    
+    <style>
+        /* --- Basic Setup and Fonts --- */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #121212; /* Dark theme background */
+            color: #e0e0e0; /* Light text color for dark theme */
+            display: flex;
+            justify-content: center;
+        }
+
+        .mobile-frame {
+            width: 100%;
+            max-width: 450px; /* Simulates a mobile screen width */
+            background-color: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            padding: 16px;
+            flex-grow: 1;
+        }
+
+        /* --- Header Section (App Icon, Name, Developer) --- */
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .app-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 20%; /* Rounded corners like Play Store icons */
+            object-fit: cover;
+        }
+
+        .app-info h1 {
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .app-info .developer-name {
+            font-size: 16px;
+            color: #00aaff; /* A bright color for the developer name */
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        
+        .app-info .contains-ads {
+            font-size: 12px;
+            color: #b0b0b0;
+            margin-top: 4px;
+        }
+
+        /* --- Metrics Section (Rating, Size, Age) --- */
+        .app-metrics {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-top: 24px;
+            padding: 0 10px;
+        }
+
+        .metric-item {
+            flex: 1;
+            position: relative;
+        }
+        
+        .metric-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 32px;
+            background-color: #444;
+        }
+
+        .metric-item .icon { font-size: 20px; }
+        .metric-item .value { font-size: 14px; font-weight: 500; color: #ffffff; margin-bottom: 4px; }
+        .metric-item .label { font-size: 12px; color: #b0b0b0; }
+        .age-rating-box { display: inline-block; border: 1px solid #999; padding: 2px 6px; font-weight: bold; border-radius: 4px; font-size: 12px; }
+
+        /* --- Install Button --- */
+        .install-button {
+            width: 100%;
+            background-color: #00875f; /* Play Store green color */
+            color: #ffffff;
+            border: none;
+            padding: 14px 0;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 24px;
+        }
+
+        /* --- Screenshots Section --- */
+        .screenshots-section { margin-top: 24px; overflow: hidden; }
+        .screenshots-container { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+        .screenshots-container::-webkit-scrollbar { display: none; }
+        .screenshot-img { width: auto; height: 280px; border-radius: 12px; object-fit: cover; }
+
+        /* --- About Section --- */
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; margin-bottom: 12px; }
+        .section-header h2 { font-size: 18px; margin: 0; color: #ffffff; }
+        .arrow-icon { font-size: 24px; font-weight: bold; color: #b0b0b0; }
+        .about-text { font-size: 14px; line-height: 1.5; color: #d0d0d0; }
+
+        /* --- Tags Section --- */
+        .tags-container { margin-top: 24px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag { border: 1px solid #555; padding: 6px 16px; border-radius: 20px; font-size: 14px; }
+        
+        /* --- Data Safety Section --- */
+        .data-safety-text { font-size: 14px; line-height: 1.5; color: #d0d0d0; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-frame">
+        <div class="main-content">
+            
+            <!-- App Header -->
+            <header class="app-header">
+                <!-- ### EDIT HERE ### -->
+                <!-- یقینی بنائیں کہ آپ کا آئیکن 'images' فولڈر میں 'icon.png' نام سے موجود ہو -->
+                <img src="Picsart_25-06-26_16-45-30-046.png" alt="App Icon" class="app-icon">
+                
+                <div class="app-info">
+                    <!-- آپ کی معلومات یہاں ڈال دی گئی ہیں -->
+                    <h1>Game Tournament</h1>
+                    <p class="developer-name">Ali FF x Spider AI</p>
+                    <p class="contains-ads">Contains ads · In-app purchases</p>
+                </div>
+            </header>
+
+            <!-- App Metrics -->
+            <section class="app-metrics">
+                <div class="metric-item">
+                    <!-- ### EDIT HERE ### -->
+                    <!-- یہاں ریٹنگ اور ریویوز تبدیل کر سکتے ہیں -->
+                    <div class="value">4.5 ★</div>
+                    <div class="label">15K reviews</div>
+                </div>
+                <div class="metric-item">
+                     <div class="icon">▼</div>
+                     <!-- آپ کی ایپ کا سائز یہاں ڈال دیا گیا ہے -->
+                    <div class="value">10 MB</div>
+                    <div class="label"></div>
+                </div>
+                <div class="metric-item">
+                    <!-- ### EDIT HERE ### -->
+                    <!-- یہاں عمر کی ریٹنگ تبدیل کر سکتے ہیں -->
+                    <div class="value age-rating-box">12+</div>
+                    <div class="label">Rated for 12+</div>
+                </div>
+            </section>
+
+            <!-- Install Button -->
+            <!-- ### EDIT HERE ### -->
+            <!-- 'your-app.apk' کو اپنی اصل فائل کے نام سے تبدیل کریں -->
+            <a href="your-app.apk" download style="text-decoration: none;">
+                <button class="install-button">Install</button>
+            </a>
+
+            <!-- Screenshots -->
+            <section class="screenshots-section">
+                <div class="screenshots-container">
+                    <!-- ### EDIT HERE ### -->
+                    <!-- یقینی بنائیں کہ آپ کے اسکرین شاٹس 'images' فولڈر میں موجود ہوں -->
+                    <img src="Picsart_25-06-26_17-06-13-041.jpg" alt="Screenshot 1" class="screenshot-img">
+                    <img src="Picsart_25-06-26_17-14-10-972.jpg" alt="Screenshot 2" class="screenshot-img">
+                    <img src="Picsart_25-06-26_17-13-14-572.jpg" alt="Screenshot 3" class="screenshot-img">
+                    <img src="Picsart_25-06-26_17-10-32-383.jpg" alt="Screenshot 4" class="screenshot-img">
+                </div>
+            </section>
+            
+            <!-- About this app -->
+            <section class="about-section">
+                <div class="section-header">
+                    <h2>About this app</h2>
+                    <span class="arrow-icon">&rarr;</span>
+                </div>
+                <!-- ### EDIT HERE ### -->
+                <!-- آپ اس تفصیل کو اپنی مرضی کے مطابق تبدیل کر سکتے ہیں -->
+                <p class="about-text">
+                    Welcome to the ultimate hub for mobile gaming tournaments! Compete in daily and weekly tournaments for popular battle royale games like <strong>Free Fire and PUBG</strong>. 
+                    <br><br>
+                    Join a match, showcase your skills, climb the leaderboards, and win exciting prizes and rewards. Our platform provides a seamless experience for finding matches, tracking your progress, and connecting with a passionate gaming community. Are you ready to become a champion?
+                </p>
+            </section>
+
+            <!-- Tags -->
+            <div class="tags-container">
+                <!-- ### EDIT HERE ### -->
+                <!-- آپ ان ٹیگز کو اپنی ایپ کی کیٹیگریز کے مطابق تبدیل کر سکتے ہیں -->
+                <span class="tag">Action</span>
+                <span class="tag">Esports</span>
+                <span class="tag">Multiplayer</span>
+            </div>
+
+            <!-- Data Safety Section -->
+             <section class="data-safety-section">
+                <div class="section-header">
+                    <h2>Data safety</h2>
+                    <span class="arrow-icon">&rarr;</span>
+                </div>
+                <p class="data-safety-text">
+                    Safety starts with understanding how developers collect and share your data. Data privacy and security practices may vary based on your use, region, and age. The developer provided this information and may update it over time.
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+</body>
+</html>
