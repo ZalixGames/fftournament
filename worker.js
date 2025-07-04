@@ -22,46 +22,62 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
+        // Use addAll for atomic operation
         return cache.addAll(URLS_TO_CACHE);
+      })
+      .catch(error => {
+        console.error('Failed to cache during install:', error);
       })
   );
 });
 
-// Cache and return requests
+// Cache and return requests - Cache First Strategy
 self.addEventListener('fetch', event => {
-    // We only want to cache GET requests.
-    if (event.request.method !== 'GET') {
-        return;
-    }
-    
-    // For other requests, go to the network first, then cache.
-    event.respondWith(
-        fetch(event.request)
-            .then(response => {
-                // Check if we received a valid response
-                if (!response || response.status !== 200 || response.type !== 'basic' && response.type !== 'cors') {
-                    // if not, return the response as is
-                    return response;
-                }
-                
-                // IMPORTANT: Clone the response. A response is a stream
-                // and because we want the browser to consume the response
-                // as well as the cache consuming the response, we need
-                // to clone it so we have two streams.
-                const responseToCache = response.clone();
-                
-                caches.open(CACHE_NAME)
-                    .then(cache => {
-                        cache.put(event.request, responseToCache);
-                    });
-                
-                return response;
-            })
-            .catch(() => {
-                // If the network fails, try to get it from the cache.
-                return caches.match(event.request);
-            })
-    );
+  // We only want to handle GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request)
+      .then(cachedResponse => {
+        // If we have a cached response, return it.
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // If it's not in the cache, fetch it from the network.
+        return fetch(event.request)
+          .then(networkResponse => {
+            // Check if we received a valid response. We don't want to cache errors.
+            if (!networkResponse || networkResponse.status !== 200 || (networkResponse.type !== 'basic' && networkResponse.type !== 'cors')) {
+              return networkResponse;
+            }
+
+            // Clone the response because it's a stream and can only be consumed once.
+            const responseToCache = networkResponse.clone();
+
+            // Open the cache and add the new response to it.
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+
+            // Return the network response to the browser.
+            return networkResponse;
+          })
+          .catch(() => {
+            // If the network request fails and there's nothing in the cache,
+            // it's a real offline scenario. We can return a fallback page.
+            // For navigation requests, the pre-cached 'index.html' is a good fallback.
+            if (event.request.mode === 'navigate') {
+              console.log('Fetch failed, returning index.html from cache.');
+              return caches.match('index.html');
+            }
+            // For other assets like images, we don't have a specific fallback, so let it fail.
+          });
+      })
+  );
 });
 
 
@@ -73,6 +89,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
