@@ -1,7 +1,7 @@
 {
-  "name": "Gaming Tournament",
-  "short_name": "G-Tournament",
-  "description": "A platform for online gaming tournaments, rewards, and playing casual games.",
+  "name": "Battle Arena",
+  "short_name": "Battle Arena",
+  "description": "Welcome to the Battle Arena! Your platform for online gaming tournaments, rewards, and casual games.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0F172A",
